@@ -8,13 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:7001',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    // Removed proxy configuration since we're using mock API
   },
   plugins: [
     react(),
