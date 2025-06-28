@@ -31,6 +31,11 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!isOpen) return;
       
+      // Prevent default behavior for arrow keys
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+      }
+      
       switch (e.key) {
         case 'Escape':
           onClose();
@@ -45,25 +50,41 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
         case 'I':
           setShowInfo(!showInfo);
           break;
+        case ' ': // Spacebar
+          e.preventDefault();
+          handleNext();
+          break;
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, showInfo]);
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyPress);
+      // Prevent scrolling when preview is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, showInfo, currentIndex, images.length]);
 
   const handlePrevious = () => {
-    if (currentIndex > 0) {
-      onIndexChange(currentIndex - 1);
-      resetView();
-    }
+    if (images.length === 0) return;
+    
+    // Infinite loop: if at first image, go to last
+    const newIndex = currentIndex <= 0 ? images.length - 1 : currentIndex - 1;
+    onIndexChange(newIndex);
+    resetView();
   };
 
   const handleNext = () => {
-    if (currentIndex < images.length - 1) {
-      onIndexChange(currentIndex + 1);
-      resetView();
-    }
+    if (images.length === 0) return;
+    
+    // Infinite loop: if at last image, go to first
+    const newIndex = currentIndex >= images.length - 1 ? 0 : currentIndex + 1;
+    onIndexChange(newIndex);
+    resetView();
   };
 
   const resetView = () => {
@@ -85,7 +106,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
     }
   };
 
-  if (!isOpen || !currentImage) return null;
+  if (!isOpen || !currentImage || images.length === 0) return null;
 
   return (
     <AnimatePresence>
@@ -102,6 +123,9 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
             <span className="text-sm">
               {currentIndex + 1} of {images.length}
             </span>
+            <span className="text-xs text-gray-300">
+              • Use ← → arrow keys to navigate
+            </span>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -113,6 +137,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                 setShowInfo(!showInfo);
               }}
               className="text-white hover:bg-white/20"
+              title="Toggle info (I)"
             >
               <Info className="h-4 w-4" />
             </Button>
@@ -124,6 +149,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                 handleShare();
               }}
               className="text-white hover:bg-white/20"
+              title="Share"
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -132,6 +158,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               variant="ghost"
               onClick={onClose}
               className="text-white hover:bg-white/20"
+              title="Close (Esc)"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -147,10 +174,10 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               e.stopPropagation();
               handlePrevious();
             }}
-            disabled={currentIndex === 0}
-            className="text-white hover:bg-white/20 disabled:opacity-50"
+            className="text-white hover:bg-white/20 h-12 w-12"
+            title="Previous image (←)"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-8 w-8" />
           </Button>
         </div>
 
@@ -162,10 +189,10 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               e.stopPropagation();
               handleNext();
             }}
-            disabled={currentIndex === images.length - 1}
-            className="text-white hover:bg-white/20 disabled:opacity-50"
+            className="text-white hover:bg-white/20 h-12 w-12"
+            title="Next image (→)"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-8 w-8" />
           </Button>
         </div>
 
@@ -179,6 +206,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               setZoom(prev => Math.min(prev * 1.2, 5));
             }}
             className="text-white hover:bg-white/20"
+            title="Zoom in"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -190,6 +218,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               setZoom(prev => Math.max(prev / 1.2, 0.1));
             }}
             className="text-white hover:bg-white/20"
+            title="Zoom out"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -201,20 +230,29 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               setRotation(prev => (prev + 90) % 360);
             }}
             className="text-white hover:bg-white/20"
+            title="Rotate"
           >
             <RotateCw className="h-4 w-4" />
           </Button>
           <Button
-            size="icon"
+            size="sm"
             variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
               resetView();
             }}
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 px-3"
+            title="Reset view"
           >
             Reset
           </Button>
+          
+          {/* Zoom indicator */}
+          {zoom !== 1 && (
+            <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+              {Math.round(zoom * 100)}%
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -227,6 +265,7 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               window.open(currentImage.url, '_blank');
             }}
             className="text-white hover:bg-white/20"
+            title="Download"
           >
             <Download className="h-4 w-4" />
           </Button>
@@ -236,9 +275,17 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onDelete(currentImage.id, currentImage.folder || 'general');
-              onClose();
+              // If this was the last image, close preview
+              if (images.length <= 1) {
+                onClose();
+              } else {
+                // Move to next image, or previous if we're at the end
+                const newIndex = currentIndex >= images.length - 1 ? 0 : currentIndex;
+                onIndexChange(newIndex);
+              }
             }}
             className="text-white hover:bg-red-500/20"
+            title="Delete"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -247,9 +294,10 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
         {/* Main Image */}
         <div className="flex items-center justify-center h-full p-16">
           <motion.img
-            key={currentImage.id}
+            key={`${currentImage.id}-${currentIndex}`}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
             src={currentImage.url}
             alt={currentImage.fileName || 'Image'}
             className="max-w-full max-h-full object-contain transition-transform duration-200"
@@ -257,6 +305,9 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               transform: `scale(${zoom}) rotate(${rotation}deg)`,
             }}
             onClick={(e) => e.stopPropagation()}
+            onError={(e) => {
+              console.error('Failed to load image:', currentImage.url);
+            }}
           />
         </div>
 
@@ -271,7 +322,17 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-white space-y-4">
-                <h3 className="text-lg font-semibold">Image Details</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Image Details</h3>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setShowInfo(false)}
+                    className="text-white hover:bg-white/20 h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
                 
                 <div className="space-y-2 text-sm">
                   <div>
@@ -313,11 +374,50 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({
                       </div>
                     </div>
                   )}
+
+                  {currentImage.width && currentImage.height && (
+                    <div>
+                      <span className="text-gray-300">Dimensions:</span>
+                      <p>{currentImage.width} × {currentImage.height} pixels</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Navigation shortcuts */}
+                <div className="pt-4 border-t border-gray-600">
+                  <h4 className="text-sm font-medium mb-2">Keyboard Shortcuts</h4>
+                  <div className="space-y-1 text-xs text-gray-300">
+                    <div className="flex justify-between">
+                      <span>← →</span>
+                      <span>Navigate images</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Space</span>
+                      <span>Next image</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>I</span>
+                      <span>Toggle info</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Esc</span>
+                      <span>Close preview</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Loading indicator for next/previous images */}
+        <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-white text-sm opacity-75">
+          {images.length > 1 && (
+            <span>
+              Image {currentIndex + 1} of {images.length} • Infinite loop enabled
+            </span>
+          )}
+        </div>
       </motion.div>
     </AnimatePresence>
   );
