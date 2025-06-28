@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
 import Upload from './pages/Upload';
 import Analytics from './pages/Analytics';
@@ -15,7 +14,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Analytics />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="upload" element={<Upload />} />
             <Route path="analytics" element={<Analytics />} />
