@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid, CheckSquare, Folder, Compare, Maximize2 } from 'lucide-react';
+import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid, CheckSquare, Folder, GitCompare as Compare, Maximize2 } from 'lucide-react';
 import { useGetGalleryQuery, useDeleteImageMutation } from '../store/api/apiSlice';
 import { GalleryImage, SearchFilters, BulkOperation } from '../types/api';
 import ImageGrid from '../components/gallery/ImageGrid';
