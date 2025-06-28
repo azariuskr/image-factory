@@ -20,7 +20,6 @@ import { Card } from '../ui/card';
 interface ImageGridProps {
   images: GalleryImage[];
   onImageClick: (image: GalleryImage) => void;
-  onEyeClick?: (image: GalleryImage) => void;
   onDeleteImage: (id: string, folder: string) => void;
   isLoading?: boolean;
   viewMode?: 'grid' | 'list';
@@ -33,7 +32,6 @@ interface ImageGridProps {
 const ImageGrid: React.FC<ImageGridProps> = ({
   images,
   onImageClick,
-  onEyeClick,
   onDeleteImage,
   isLoading = false,
   viewMode = 'grid',
@@ -208,20 +206,17 @@ const ImageGrid: React.FC<ImageGridProps> = ({
 
                   {!bulkMode && (
                     <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {onEyeClick && (
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEyeClick(image);
-                          }}
-                          className="bg-white/90 hover:bg-white h-8 w-8"
-                          title="View metadata"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onImageClick(image);
+                        }}
+                        className="bg-white/90 hover:bg-white"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="secondary"
@@ -229,8 +224,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                           e.stopPropagation();
                           window.open(image.url, '_blank');
                         }}
-                        className="bg-white/90 hover:bg-white h-8 w-8"
-                        title="Download"
+                        className="bg-white/90 hover:bg-white"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -241,8 +235,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                           e.stopPropagation();
                           onDeleteImage(image.id, image.folder || 'general');
                         }}
-                        className="bg-red-500/90 hover:bg-red-600 h-8 w-8"
-                        title="Delete"
+                        className="bg-red-500/90 hover:bg-red-600"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -325,20 +318,17 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                       >
                         {/* Action buttons positioned at the bottom */}
                         <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                          {onEyeClick && (
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEyeClick(image);
-                              }}
-                              className="bg-white/90 hover:bg-white h-8 w-8"
-                              title="View metadata"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onImageClick(image);
+                            }}
+                            className="bg-white/90 hover:bg-white h-8 w-8"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                           <Button
                             size="icon"
                             variant="secondary"
@@ -347,7 +337,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                               window.open(image.url, '_blank');
                             }}
                             className="bg-white/90 hover:bg-white h-8 w-8"
-                            title="Download"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -359,7 +348,6 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                               onDeleteImage(image.id, image.folder || 'general');
                             }}
                             className="bg-red-500/90 hover:bg-red-600 h-8 w-8"
-                            title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
