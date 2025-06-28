@@ -6,6 +6,8 @@ export interface ImageUploadResult {
   folder: string;
   uploadedAt: string;
   eTag: string;
+  tags?: string[];
+  metadata?: Record<string, string>;
 }
 
 export interface BatchUploadResult {
@@ -33,7 +35,7 @@ export interface GalleryResponse {
   hasMore: boolean;
 }
 
-// For internal use in components - we'll extract ID from URL
+// Enhanced GalleryImage with better metadata support
 export interface GalleryImage {
   id: string;
   url: string;
@@ -43,6 +45,10 @@ export interface GalleryImage {
   fileSize?: number;
   folder?: string;
   uploadedAt?: string;
+  tags?: string[];
+  metadata?: Record<string, string>;
+  width?: number;
+  height?: number;
 }
 
 export interface ImageDataResult {
@@ -55,6 +61,8 @@ export interface ImageDataResult {
   eTag: string;
   width?: number;
   height?: number;
+  tags?: string[];
+  metadata?: Record<string, string>;
 }
 
 export interface ImageMetadata {
@@ -68,6 +76,8 @@ export interface ImageMetadata {
   createdAt: string;
   modifiedAt: string;
   eTag: string;
+  tags?: string[];
+  metadata?: Record<string, string>;
 }
 
 export interface ProcessingRequest {
@@ -128,4 +138,45 @@ export interface Base64Response {
 
 export interface ImageUrlResponse {
   url: string;
+}
+
+// New interfaces for folder management
+export interface FolderInfo {
+  name: string;
+  imageCount: number;
+  totalSize: number;
+  lastModified: string;
+}
+
+export interface CreateFolderRequest {
+  name: string;
+  description?: string;
+}
+
+export interface FolderListResponse {
+  folders: FolderInfo[];
+}
+
+// Media type enum for future video support
+export enum MediaType {
+  Image = 'image',
+  Video = 'video'
+}
+
+// Enhanced media item for future video support
+export interface MediaItem {
+  id: string;
+  type: MediaType;
+  url: string;
+  thumbnailUrl: string;
+  fileName?: string;
+  contentType?: string;
+  fileSize?: number;
+  folder?: string;
+  uploadedAt?: string;
+  tags?: string[];
+  metadata?: Record<string, string>;
+  width?: number;
+  height?: number;
+  duration?: number; // For videos
 }
