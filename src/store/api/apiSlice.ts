@@ -14,7 +14,7 @@ import {
   ImageUrlResponse,
 } from '../../types/api';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'https://myapi123.loca.lt/api';
 
 // Helper functions
 const extractImageIdFromUrl = (url: string): string => {
