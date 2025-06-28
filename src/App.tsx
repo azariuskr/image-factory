@@ -14,7 +14,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Analytics />} />
+            <Route index element={<Gallery />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="upload" element={<Upload />} />
             <Route path="analytics" element={<Analytics />} />

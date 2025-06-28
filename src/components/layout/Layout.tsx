@@ -6,16 +6,14 @@ import {
   Upload, 
   BarChart3, 
   Settings,
-  Camera,
-  Home
+  Camera
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: Home },
-    { path: '/gallery', label: 'Gallery', icon: Images },
+    { path: '/', label: 'Gallery', icon: Images },
     { path: '/upload', label: 'Upload', icon: Upload },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/settings', label: 'Settings', icon: Settings },
