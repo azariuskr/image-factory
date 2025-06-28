@@ -88,8 +88,8 @@ const ImageModal: React.FC<ImageModalProps> = ({
 
         <div className="flex flex-col lg:flex-row h-full max-h-[95vh]">
           {/* Image Section */}
-          <div className="flex-1 bg-black relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex-1 bg-black relative overflow-hidden min-h-[60vh] lg:min-h-[80vh]">
+            <div className="absolute inset-0 flex items-center justify-center p-4">
               {!imageLoaded && !imageError && (
                 <div className="flex items-center space-x-2 text-white">
                   <Loader className="h-6 w-6 animate-spin" />

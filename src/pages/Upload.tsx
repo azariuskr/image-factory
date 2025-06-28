@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   useUploadImageMutation,
-  useUploadBatchMutation,
-  useGetFoldersQuery
+  useUploadBatchMutation
 } from '../store/api/apiSlice';
 import UploadZone from '../components/upload/UploadZone';
 import UploadProgress from '../components/upload/UploadProgress';
@@ -28,7 +27,6 @@ const Upload: React.FC = () => {
     totalCount: 0
   });
 
-  const { data: foldersData } = useGetFoldersQuery();
   const [uploadImage] = useUploadImageMutation();
   const [uploadBatch] = useUploadBatchMutation();
 
@@ -141,7 +139,8 @@ const Upload: React.FC = () => {
     }
   };
 
-  const folders = foldersData?.folders || [];
+  // Common folder suggestions
+  const commonFolders = ['general', 'portraits', 'landscapes', 'products', 'events', 'nature'];
 
   return (
     <div className="space-y-6">
@@ -172,18 +171,37 @@ const Upload: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Destination Folder
               </label>
-              <select
-                value={folder}
-                onChange={(e) => setFolder(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-              >
-                <option value="general">General</option>
-                {folders.map((folderInfo) => (
-                  <option key={folderInfo.name} value={folderInfo.name}>
-                    {folderInfo.name} ({folderInfo.imageCount} images)
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Enter folder name..."
+                  value={folder}
+                  onChange={(e) => setFolder(e.target.value || 'general')}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
+                  list="folder-suggestions"
+                />
+                <datalist id="folder-suggestions">
+                  {commonFolders.map(folderName => (
+                    <option key={folderName} value={folderName} />
+                  ))}
+                </datalist>
+                
+                {/* Quick folder buttons */}
+                <div className="flex flex-wrap gap-2">
+                  {commonFolders.map(folderName => (
+                    <Button
+                      key={folderName}
+                      type="button"
+                      size="sm"
+                      variant={folder === folderName ? 'default' : 'outline'}
+                      onClick={() => setFolder(folderName)}
+                      className={`text-xs ${folder === folderName ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}`}
+                    >
+                      {folderName}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Tags */}

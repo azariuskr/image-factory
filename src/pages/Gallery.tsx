@@ -6,7 +6,6 @@ import { GalleryImage } from '../types/api';
 import ImageGrid from '../components/gallery/ImageGrid';
 import ImageModal from '../components/gallery/ImageModal';
 import Pagination from '../components/gallery/Pagination';
-import FolderManager from '../components/folders/FolderManager';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 
@@ -18,13 +17,24 @@ const Gallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [thumbnailSize, setThumbnailSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [showFolders, setShowFolders] = useState(false);
+
+  // Get thumbnail dimensions based on size
+  const getThumbnailDimensions = (size: string) => {
+    switch (size) {
+      case 'small': return { w: 200, h: 200 };
+      case 'large': return { w: 600, h: 400 };
+      default: return { w: 400, h: 400 }; // medium
+    }
+  };
+
+  const thumbnailDims = getThumbnailDimensions(thumbnailSize);
 
   const { data: galleryData, isLoading, error, refetch } = useGetGalleryQuery({
     folder,
     page: currentPage,
     pageSize,
-    thumbnailSize,
+    w: thumbnailDims.w,
+    h: thumbnailDims.h,
     format: 'webp'
   });
 
@@ -46,7 +56,6 @@ const Gallery: React.FC = () => {
   const handleFolderChange = useCallback((newFolder: string) => {
     setFolder(newFolder);
     setCurrentPage(1);
-    setShowFolders(false);
   }, []);
 
   // Filter images based on search term
@@ -68,6 +77,9 @@ const Gallery: React.FC = () => {
     { value: 'medium', label: 'Medium', icon: Grid },
     { value: 'large', label: 'Large', icon: Eye }
   ] as const;
+
+  // Common folder suggestions
+  const commonFolders = ['general', 'portraits', 'landscapes', 'products', 'events', 'nature'];
 
   return (
     <div className="space-y-6">
@@ -120,126 +132,128 @@ const Gallery: React.FC = () => {
               <List className="h-4 w-4" />
             </Button>
           </div>
-
-          {/* Folders Toggle */}
-          <Button
-            variant={showFolders ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setShowFolders(!showFolders)}
-            className={showFolders ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Folders
-          </Button>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className={`lg:col-span-1 ${showFolders ? 'block' : 'hidden lg:block'}`}
-        >
-          <FolderManager
-            selectedFolder={folder}
-            onFolderSelect={handleFolderChange}
-          />
-        </motion.div>
-
-        {/* Main Content */}
-        <div className={`${showFolders ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
-          {/* Filters */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-6"
-          >
-            <Card className="bg-white/60 backdrop-blur-sm border-white/40">
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {/* Search */}
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search by filename, ID, or tags..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-                    />
-                  </div>
-
-                  {/* Page Size */}
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-                  >
-                    <option value={12}>12 per page</option>
-                    <option value={20}>20 per page</option>
-                    <option value={36}>36 per page</option>
-                    <option value={50}>50 per page</option>
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Gallery Content */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            {error && (
-              <Card className="bg-red-50 border-red-200 mb-6">
-                <CardContent className="p-4">
-                  <p className="text-red-600">Failed to load images. Please try again.</p>
-                  <Button onClick={() => refetch()} className="mt-2">
-                    Retry
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            <ImageGrid
-              images={filteredImages}
-              onImageClick={setSelectedImage}
-              onDeleteImage={handleDeleteImage}
-              isLoading={isLoading}
-              viewMode={viewMode}
-              thumbnailSize={thumbnailSize}
-            />
-
-            {/* Pagination */}
-            {galleryData && !searchTerm && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={galleryData.totalPages}
-                onPageChange={handlePageChange}
-                isLoading={isLoading}
-              />
-            )}
-
-            {/* Search Results Info */}
-            {searchTerm && (
-              <div className="mt-6 text-center text-gray-600">
-                {filteredImages.length === 0 ? (
-                  <p>No images found matching "{searchTerm}"</p>
-                ) : (
-                  <p>Found {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''} matching "{searchTerm}"</p>
-                )}
+      {/* Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <Card className="bg-white/60 backdrop-blur-sm border-white/40">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by filename, ID, or tags..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
+                />
               </div>
+
+              {/* Folder Input */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Enter folder name..."
+                  value={folder}
+                  onChange={(e) => handleFolderChange(e.target.value || 'general')}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
+                  list="folder-suggestions"
+                />
+                <datalist id="folder-suggestions">
+                  {commonFolders.map(folderName => (
+                    <option key={folderName} value={folderName} />
+                  ))}
+                </datalist>
+              </div>
+
+              {/* Page Size */}
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
+              >
+                <option value={12}>12 per page</option>
+                <option value={20}>20 per page</option>
+                <option value={36}>36 per page</option>
+                <option value={50}>50 per page</option>
+              </select>
+
+              {/* Quick Folder Buttons */}
+              <div className="flex flex-wrap gap-1">
+                {commonFolders.slice(0, 4).map(folderName => (
+                  <Button
+                    key={folderName}
+                    size="sm"
+                    variant={folder === folderName ? 'default' : 'outline'}
+                    onClick={() => handleFolderChange(folderName)}
+                    className={`text-xs ${folder === folderName ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}`}
+                  >
+                    {folderName}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Gallery Content */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        {error && (
+          <Card className="bg-red-50 border-red-200 mb-6">
+            <CardContent className="p-4">
+              <p className="text-red-600">Failed to load images. Please try again.</p>
+              <Button onClick={() => refetch()} className="mt-2">
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <ImageGrid
+          images={filteredImages}
+          onImageClick={setSelectedImage}
+          onDeleteImage={handleDeleteImage}
+          isLoading={isLoading}
+          viewMode={viewMode}
+          thumbnailSize={thumbnailSize}
+        />
+
+        {/* Pagination */}
+        {galleryData && !searchTerm && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={galleryData.totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+          />
+        )}
+
+        {/* Search Results Info */}
+        {searchTerm && (
+          <div className="mt-6 text-center text-gray-600">
+            {filteredImages.length === 0 ? (
+              <p>No images found matching "{searchTerm}"</p>
+            ) : (
+              <p>Found {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''} matching "{searchTerm}"</p>
             )}
-          </motion.div>
-        </div>
-      </div>
+          </div>
+        )}
+      </motion.div>
 
       {/* Image Modal */}
       <ImageModal
