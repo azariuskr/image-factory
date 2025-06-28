@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid, CheckSquare } from 'lucide-react';
+import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid, CheckSquare, Folder } from 'lucide-react';
 import { useGetGalleryQuery, useDeleteImageMutation } from '../store/api/apiSlice';
 import { GalleryImage, SearchFilters, BulkOperation } from '../types/api';
 import ImageGrid from '../components/gallery/ImageGrid';
@@ -204,6 +204,72 @@ const Gallery: React.FC = () => {
             </Button>
           </div>
         </div>
+      </motion.div>
+
+      {/* Folder Selection */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+      >
+        <Card className="bg-white/60 backdrop-blur-sm border-white/40">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Folder className="h-5 w-5 text-blue-600" />
+                <label className="text-sm font-medium text-gray-700">
+                  Current Folder:
+                </label>
+              </div>
+              
+              <div className="flex-1 max-w-md">
+                <input
+                  type="text"
+                  value={folder}
+                  onChange={(e) => setFolder(e.target.value || 'general')}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleFolderChange(folder);
+                    }
+                  }}
+                  placeholder="Enter folder name..."
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
+                  list="folder-suggestions"
+                />
+                <datalist id="folder-suggestions">
+                  {commonFolders.map(folderName => (
+                    <option key={folderName} value={folderName} />
+                  ))}
+                </datalist>
+              </div>
+
+              <Button
+                onClick={() => handleFolderChange(folder)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600"
+                size="sm"
+              >
+                Load Folder
+              </Button>
+            </div>
+
+            {/* Quick folder buttons */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              <span className="text-xs text-gray-500 mr-2">Quick access:</span>
+              {commonFolders.map(folderName => (
+                <Button
+                  key={folderName}
+                  type="button"
+                  size="sm"
+                  variant={folder === folderName ? 'default' : 'outline'}
+                  onClick={() => handleFolderChange(folderName)}
+                  className={`text-xs ${folder === folderName ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}`}
+                >
+                  {folderName}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Advanced Search */}
