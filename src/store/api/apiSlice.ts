@@ -18,7 +18,8 @@ import {
   FolderInfo,
 } from '../../types/api';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Use relative path for API calls - Vite proxy will handle forwarding to backend
+const API_BASE_URL = '/api';
 
 // Standard thumbnail sizes for consistent display
 const THUMBNAIL_SIZES = {
