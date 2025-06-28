@@ -6,7 +6,6 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Gallery from './pages/Gallery';
 import Upload from './pages/Upload';
-import Statistics from './pages/Statistics';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 
@@ -19,7 +18,6 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="upload" element={<Upload />} />
-            <Route path="stats" element={<Statistics />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />
           </Route>

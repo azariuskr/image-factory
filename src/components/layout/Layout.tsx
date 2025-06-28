@@ -7,8 +7,6 @@ import {
   BarChart3, 
   Settings,
   Camera,
-  Activity,
-  TrendingUp,
   Home
 } from 'lucide-react';
 
@@ -19,8 +17,7 @@ const Layout: React.FC = () => {
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/gallery', label: 'Gallery', icon: Images },
     { path: '/upload', label: 'Upload', icon: Upload },
-    { path: '/stats', label: 'Queue Stats', icon: BarChart3 },
-    { path: '/analytics', label: 'Analytics', icon: TrendingUp },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
