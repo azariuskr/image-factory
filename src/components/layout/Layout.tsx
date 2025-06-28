@@ -6,7 +6,9 @@ import {
   Upload, 
   BarChart3, 
   Settings,
-  Camera
+  Camera,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
@@ -15,7 +17,8 @@ const Layout: React.FC = () => {
   const navItems = [
     { path: '/', label: 'Gallery', icon: Images },
     { path: '/upload', label: 'Upload', icon: Upload },
-    { path: '/stats', label: 'Statistics', icon: BarChart3 },
+    { path: '/stats', label: 'Queue Stats', icon: BarChart3 },
+    { path: '/analytics', label: 'Analytics', icon: TrendingUp },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
@@ -34,7 +37,7 @@ const Layout: React.FC = () => {
                 <Camera className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ImageGallery
+                MediaHub Pro
               </span>
             </Link>
             
@@ -60,7 +63,7 @@ const Layout: React.FC = () => {
                       isActive ? 'text-white' : 'text-gray-700'
                     }`}>
                       <Icon className="h-4 w-4" />
-                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-sm font-medium hidden sm:inline">{item.label}</span>
                     </div>
                   </Link>
                 );

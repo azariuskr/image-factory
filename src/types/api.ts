@@ -144,8 +144,10 @@ export interface ImageUrlResponse {
 export interface FolderInfo {
   name: string;
   imageCount: number;
+  videoCount?: number;
   totalSize: number;
   lastModified: string;
+  description?: string;
 }
 
 export interface CreateFolderRequest {
@@ -160,7 +162,8 @@ export interface FolderListResponse {
 // Media type enum for future video support
 export enum MediaType {
   Image = 'image',
-  Video = 'video'
+  Video = 'video',
+  Audio = 'audio'
 }
 
 // Enhanced media item for future video support
@@ -178,5 +181,72 @@ export interface MediaItem {
   metadata?: Record<string, string>;
   width?: number;
   height?: number;
-  duration?: number; // For videos
+  duration?: number; // For videos/audio
+  bitrate?: number; // For videos/audio
+  fps?: number; // For videos
+}
+
+// Search and filtering interfaces
+export interface SearchFilters {
+  query?: string;
+  tags?: string[];
+  folder?: string;
+  mediaType?: MediaType;
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  sizeRange?: {
+    min: number;
+    max: number;
+  };
+  sortBy?: 'name' | 'date' | 'size' | 'type';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface SearchResponse {
+  items: MediaItem[];
+  totalCount: number;
+  facets: {
+    tags: Array<{ name: string; count: number }>;
+    folders: Array<{ name: string; count: number }>;
+    types: Array<{ type: MediaType; count: number }>;
+  };
+}
+
+// Bulk operations
+export interface BulkOperation {
+  type: 'move' | 'copy' | 'delete' | 'tag' | 'process';
+  itemIds: string[];
+  parameters?: Record<string, any>;
+}
+
+export interface BulkOperationResult {
+  successful: string[];
+  failed: Array<{
+    id: string;
+    error: string;
+  }>;
+}
+
+// Analytics and insights
+export interface AnalyticsData {
+  totalItems: number;
+  totalSize: number;
+  itemsByType: Record<MediaType, number>;
+  itemsByFolder: Record<string, number>;
+  uploadTrends: Array<{
+    date: string;
+    count: number;
+    size: number;
+  }>;
+  popularTags: Array<{
+    tag: string;
+    count: number;
+  }>;
+  storageUsage: {
+    used: number;
+    available: number;
+    percentage: number;
+  };
 }

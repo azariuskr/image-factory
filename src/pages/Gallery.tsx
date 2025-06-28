@@ -1,11 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid } from 'lucide-react';
+import { Search, Filter, Grid, List, Sliders, Eye, LayoutGrid, CheckSquare } from 'lucide-react';
 import { useGetGalleryQuery, useDeleteImageMutation } from '../store/api/apiSlice';
-import { GalleryImage } from '../types/api';
+import { GalleryImage, SearchFilters, BulkOperation } from '../types/api';
 import ImageGrid from '../components/gallery/ImageGrid';
 import ImageModal from '../components/gallery/ImageModal';
 import Pagination from '../components/gallery/Pagination';
+import AdvancedSearch from '../components/search/AdvancedSearch';
+import BulkOperations from '../components/bulk/BulkOperations';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 
@@ -17,6 +19,17 @@ const Gallery: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [thumbnailSize, setThumbnailSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkMode, setBulkMode] = useState(false);
+  
+  // Advanced search filters
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+    query: '',
+    folder: 'general',
+    sortBy: 'date',
+    sortOrder: 'desc'
+  });
 
   // Get thumbnail dimensions based on size
   const getThumbnailDimensions = (size: string) => {
@@ -30,7 +43,7 @@ const Gallery: React.FC = () => {
   const thumbnailDims = getThumbnailDimensions(thumbnailSize);
 
   const { data: galleryData, isLoading, error, refetch } = useGetGalleryQuery({
-    folder,
+    folder: searchFilters.folder || folder,
     page: currentPage,
     pageSize,
     w: thumbnailDims.w,
@@ -44,6 +57,8 @@ const Gallery: React.FC = () => {
     try {
       await deleteImage({ id, folder: imageFolder }).unwrap();
       refetch();
+      // Remove from selection if it was selected
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
     } catch (error) {
       console.error('Failed to delete image:', error);
     }
@@ -55,22 +70,59 @@ const Gallery: React.FC = () => {
 
   const handleFolderChange = useCallback((newFolder: string) => {
     setFolder(newFolder);
+    setSearchFilters(prev => ({ ...prev, folder: newFolder }));
     setCurrentPage(1);
+    setSelectedIds([]);
   }, []);
+
+  const handleSearch = useCallback(() => {
+    setFolder(searchFilters.folder || 'general');
+    setCurrentPage(1);
+    setSelectedIds([]);
+  }, [searchFilters.folder]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchFilters({
+      query: '',
+      folder: 'general',
+      sortBy: 'date',
+      sortOrder: 'desc'
+    });
+    setSearchTerm('');
+    setFolder('general');
+    setCurrentPage(1);
+    setSelectedIds([]);
+  }, []);
+
+  const handleBulkOperation = useCallback(async (operation: BulkOperation) => {
+    console.log('Bulk operation:', operation);
+    // TODO: Implement bulk operations API calls
+    
+    // For now, just simulate the operation
+    if (operation.type === 'delete') {
+      // Delete selected images
+      for (const id of operation.itemIds) {
+        await handleDeleteImage(id, folder);
+      }
+    }
+    
+    setSelectedIds([]);
+    refetch();
+  }, [handleDeleteImage, folder, refetch]);
 
   // Filter images based on search term
   const filteredImages = useMemo(() => {
-    if (!searchTerm.trim()) {
+    if (!searchFilters.query?.trim() && !searchTerm.trim()) {
       return galleryData?.images || [];
     }
 
-    const searchLower = searchTerm.toLowerCase();
+    const query = (searchFilters.query || searchTerm).toLowerCase();
     return galleryData?.images?.filter(image =>
-      image.id.toLowerCase().includes(searchLower) ||
-      (image.fileName && image.fileName.toLowerCase().includes(searchLower)) ||
-      (image.tags && image.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+      image.id.toLowerCase().includes(query) ||
+      (image.fileName && image.fileName.toLowerCase().includes(query)) ||
+      (image.tags && image.tags.some(tag => tag.toLowerCase().includes(query)))
     ) || [];
-  }, [galleryData?.images, searchTerm]);
+  }, [galleryData?.images, searchFilters.query, searchTerm]);
 
   const thumbnailSizeOptions = [
     { value: 'small', label: 'Small', icon: LayoutGrid },
@@ -90,13 +142,32 @@ const Gallery: React.FC = () => {
         className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Image Gallery</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Media Gallery</h1>
           <p className="text-gray-600 mt-1">
-            {galleryData?.totalCount || 0} images in {folder} folder
+            {galleryData?.totalCount || 0} items in {searchFilters.folder || folder} folder
+            {selectedIds.length > 0 && (
+              <span className="ml-2 text-blue-600">
+                • {selectedIds.length} selected
+              </span>
+            )}
           </p>
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Bulk Mode Toggle */}
+          <Button
+            variant={bulkMode ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setBulkMode(!bulkMode);
+              setSelectedIds([]);
+            }}
+            className={bulkMode ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
+          >
+            <CheckSquare className="h-4 w-4 mr-1" />
+            Bulk
+          </Button>
+
           {/* Thumbnail Size Selector */}
           <div className="flex items-center space-x-1 bg-white/60 backdrop-blur-sm rounded-lg p-1">
             {thumbnailSizeOptions.map(({ value, label, icon: Icon }) => (
@@ -135,76 +206,20 @@ const Gallery: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Filters */}
+      {/* Advanced Search */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="bg-white/60 backdrop-blur-sm border-white/40">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by filename, ID, or tags..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-                />
-              </div>
-
-              {/* Folder Input */}
-              <div>
-                <input
-                  type="text"
-                  placeholder="Enter folder name..."
-                  value={folder}
-                  onChange={(e) => handleFolderChange(e.target.value || 'general')}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-                  list="folder-suggestions"
-                />
-                <datalist id="folder-suggestions">
-                  {commonFolders.map(folderName => (
-                    <option key={folderName} value={folderName} />
-                  ))}
-                </datalist>
-              </div>
-
-              {/* Page Size */}
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/80"
-              >
-                <option value={12}>12 per page</option>
-                <option value={20}>20 per page</option>
-                <option value={36}>36 per page</option>
-                <option value={50}>50 per page</option>
-              </select>
-
-              {/* Quick Folder Buttons */}
-              <div className="flex flex-wrap gap-1">
-                {commonFolders.slice(0, 4).map(folderName => (
-                  <Button
-                    key={folderName}
-                    size="sm"
-                    variant={folder === folderName ? 'default' : 'outline'}
-                    onClick={() => handleFolderChange(folderName)}
-                    className={`text-xs ${folder === folderName ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}`}
-                  >
-                    {folderName}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AdvancedSearch
+          filters={searchFilters}
+          onFiltersChange={setSearchFilters}
+          onSearch={handleSearch}
+          onClear={handleClearFilters}
+          isOpen={showAdvancedSearch}
+          onToggle={() => setShowAdvancedSearch(!showAdvancedSearch)}
+        />
       </motion.div>
 
       {/* Gallery Content */}
@@ -231,10 +246,13 @@ const Gallery: React.FC = () => {
           isLoading={isLoading}
           viewMode={viewMode}
           thumbnailSize={thumbnailSize}
+          bulkMode={bulkMode}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
         />
 
         {/* Pagination */}
-        {galleryData && !searchTerm && (
+        {galleryData && !searchFilters.query && !searchTerm && (
           <Pagination
             currentPage={currentPage}
             totalPages={galleryData.totalPages}
@@ -244,16 +262,25 @@ const Gallery: React.FC = () => {
         )}
 
         {/* Search Results Info */}
-        {searchTerm && (
+        {(searchFilters.query || searchTerm) && (
           <div className="mt-6 text-center text-gray-600">
             {filteredImages.length === 0 ? (
-              <p>No images found matching "{searchTerm}"</p>
+              <p>No images found matching your search criteria</p>
             ) : (
-              <p>Found {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''} matching "{searchTerm}"</p>
+              <p>Found {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''} matching your search</p>
             )}
           </div>
         )}
       </motion.div>
+
+      {/* Bulk Operations */}
+      <BulkOperations
+        images={filteredImages}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        onBulkOperation={handleBulkOperation}
+        isVisible={bulkMode}
+      />
 
       {/* Image Modal */}
       <ImageModal
