@@ -8,14 +8,16 @@ import {
   Settings,
   Camera,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Home
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Gallery', icon: Images },
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/gallery', label: 'Gallery', icon: Images },
     { path: '/upload', label: 'Upload', icon: Upload },
     { path: '/stats', label: 'Queue Stats', icon: BarChart3 },
     { path: '/analytics', label: 'Analytics', icon: TrendingUp },
