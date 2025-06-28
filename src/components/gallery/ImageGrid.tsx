@@ -314,9 +314,10 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/50 flex items-center justify-center"
+                        className="absolute inset-0 bg-black/50"
                       >
-                        <div className="flex space-x-2">
+                        {/* Action buttons positioned at the bottom */}
+                        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
                           <Button
                             size="icon"
                             variant="secondary"
@@ -324,7 +325,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                               e.stopPropagation();
                               onImageClick(image);
                             }}
-                            className="bg-white/90 hover:bg-white"
+                            className="bg-white/90 hover:bg-white h-8 w-8"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -335,7 +336,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                               e.stopPropagation();
                               window.open(image.url, '_blank');
                             }}
-                            className="bg-white/90 hover:bg-white"
+                            className="bg-white/90 hover:bg-white h-8 w-8"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -346,7 +347,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({
                               e.stopPropagation();
                               onDeleteImage(image.id, image.folder || 'general');
                             }}
-                            className="bg-red-500/90 hover:bg-red-600"
+                            className="bg-red-500/90 hover:bg-red-600 h-8 w-8"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
